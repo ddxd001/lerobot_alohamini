@@ -31,8 +31,8 @@ if NO_LEADER:
 # Create configs
 robot_config = LeKiwiClientConfig(remote_ip=args.remote_ip, id="my_alohamini")
 bi_cfg = BiSO100LeaderConfig(
-    left_arm_port="/dev/am_arm_leader_left",
-    right_arm_port="/dev/am_arm_leader_right",
+    left_arm_port="/dev/cu.usbmodem5AE60814681",  # macOS 左主臂串口
+    right_arm_port="/dev/cu.usbmodem5AE60528341",  # macOS 右主臂串口
     id="so101_leader_bi3",
 )
 leader = BiSO100Leader(bi_cfg)

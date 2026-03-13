@@ -4,6 +4,11 @@
 
 set -e
 
+# ============ 配置选项 ============ #
+# 自动更新开关：true=启用自动更新，false=禁用自动更新
+AUTO_UPDATE=true
+# ================================= #
+
 # 颜色定义
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -22,6 +27,46 @@ cd "$SCRIPT_DIR"
 
 echo -e "${GREEN}📁 工作目录: $SCRIPT_DIR${NC}"
 echo ""
+
+# 自动更新代码
+if [ "$AUTO_UPDATE" = true ]; then
+    echo -e "${YELLOW}🔄 检查代码更新...${NC}"
+    
+    # 检查是否是 Git 仓库
+    if [ -d ".git" ]; then
+        # 保存当前分支
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        
+        # 检查是否有未提交的更改
+        if ! git diff-index --quiet HEAD --; then
+            echo -e "${YELLOW}⚠️  检测到未提交的本地修改，跳过自动更新${NC}"
+            echo -e "${YELLOW}提示: 如需更新，请先提交或暂存本地修改${NC}"
+            echo ""
+        else
+            # 拉取最新代码
+            echo -e "${YELLOW}正在从 GitHub 拉取最新代码...${NC}"
+            if git pull origin "$CURRENT_BRANCH" --quiet; then
+                echo -e "${GREEN}✅ 代码已更新到最新版本${NC}"
+                
+                # 检查是否需要重新安装依赖
+                if git diff HEAD@{1} HEAD --name-only | grep -q "pyproject.toml\|setup.py\|requirements.txt"; then
+                    echo -e "${YELLOW}⚠️  检测到依赖文件变化，建议重新安装：${NC}"
+                    echo -e "${YELLOW}   pip install -e \".[feetech]\"${NC}"
+                fi
+            else
+                echo -e "${YELLOW}⚠️  代码更新失败或已是最新版本${NC}"
+            fi
+            echo ""
+        fi
+    else
+        echo -e "${YELLOW}⚠️  当前目录不是 Git 仓库，跳过自动更新${NC}"
+        echo ""
+    fi
+else
+    echo -e "${YELLOW}ℹ️  自动更新已禁用${NC}"
+    echo -e "${YELLOW}提示: 如需启用，请编辑脚本设置 AUTO_UPDATE=true${NC}"
+    echo ""
+fi
 
 # 检测 Conda
 if ! command -v conda &> /dev/null; then
